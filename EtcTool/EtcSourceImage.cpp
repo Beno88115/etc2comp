@@ -38,7 +38,7 @@ namespace Etc
 
 	// ----------------------------------------------------------------------------------------------------
 	//
-	SourceImage::SourceImage(const char *a_pstrFilename, int a_iPixelX, int a_iPixelY)
+	SourceImage::SourceImage(const char *a_pstrFilename, int a_iPixelX, int a_iPixelY, bool premultiplyAlpha)
 	{
 		m_pstrFilename = nullptr;
 		m_pstrName = nullptr;
@@ -46,6 +46,7 @@ namespace Etc
 		m_uiWidth = 0;
 		m_uiHeight = 0;
 		m_pafrgbaPixels = nullptr;
+        m_premultiplyAlpha = premultiplyAlpha;
 
 		SetName(a_pstrFilename);
 
@@ -64,7 +65,7 @@ namespace Etc
 		m_uiWidth = a_uiSourceWidth;
 		m_uiHeight = a_uiSourceHeight;
 		m_pafrgbaPixels = a_pafrgbaSource;
-
+        m_premultiplyAlpha = false;
 	}
 	// ----------------------------------------------------------------------------------------------------
 	//
@@ -122,7 +123,7 @@ namespace Etc
 		if (paucPixels == nullptr)
 		{
 			//we can load 8 or 16 bit pngs
-			int iBitDepth = 16;
+			int iBitDepth = 8;
 			int error = lodepng_decode_file(&paucPixels,
 				(unsigned int*)&iWidth, (unsigned int*)&iHeight,
 				m_pstrFilename,
@@ -179,20 +180,40 @@ namespace Etc
 			{
 				if (bool16BitImage)
 				{
-						unsigned short ushR = (pucPixel[0]<<8) + pucPixel[1];
-						unsigned short ushG = (pucPixel[2]<<8) + pucPixel[3];
-						unsigned short ushB = (pucPixel[4]<<8) + pucPixel[5];
-						unsigned short ushA = (pucPixel[6]<<8) + pucPixel[7];
-
-						*pfrgbaPixel++ = ColorFloatRGBA((float)ushR / 65535.0f,
-														(float)ushG / 65535.0f,
-														(float)ushB / 65535.0f,
-														(float)ushA / 65535.0f);
+                    unsigned short ushR = (pucPixel[0]<<8) + pucPixel[1];
+                    unsigned short ushG = (pucPixel[2]<<8) + pucPixel[3];
+                    unsigned short ushB = (pucPixel[4]<<8) + pucPixel[5];
+                    unsigned short ushA = (pucPixel[6]<<8) + pucPixel[7];
+                    
+                    float fR = (float)ushR / 65535.0f;
+                    float fG = (float)ushG / 65535.0f;
+                    float fB = (float)ushB / 65535.0f;
+                    float fA = (float)ushA / 65535.0f;
+                        
+                    if (m_premultiplyAlpha)
+                    {
+                        fR *= fA;
+                        fG *= fA;
+                        fB *= fA;
+                    }
+                    
+                    *pfrgbaPixel++ = ColorFloatRGBA(fR, fG, fB, fA);
 				}
 				else
 				{
-						*pfrgbaPixel++ = ColorFloatRGBA::ConvertFromRGBA8(pucPixel[0], pucPixel[1],
-																			pucPixel[2], pucPixel[3]);
+                    float fR = (float)pucPixel[0] / 255.0f;
+                    float fG = (float)pucPixel[1] / 255.0f;
+                    float fB = (float)pucPixel[2] / 255.0f;
+                    float fA = (float)pucPixel[3] / 255.0f;
+                    
+                    if (m_premultiplyAlpha)
+                    {
+                        fR *= fA;
+                        fG *= fA;
+                        fB *= fA;
+                    }
+                    
+                    *pfrgbaPixel++ = ColorFloatRGBA(fR, fG, fB, fA);
 				}
 
 				pucPixel += iBytesPerPixel;

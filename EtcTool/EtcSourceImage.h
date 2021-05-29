@@ -25,7 +25,7 @@ namespace Etc
 	{
 	public:
 
-		SourceImage(const char *a_pstrFilename, int a_iPixelX = -1, int a_iPixelY = -1);
+		SourceImage(const char *a_pstrFilename, int a_iPixelX = -1, int a_iPixelY = -1, bool premultiplyAlpha = false);
 
 		SourceImage(ColorFloatRGBA *a_pafrgbaSource,
 					unsigned int a_uiSourceWidth,
@@ -86,6 +86,7 @@ namespace Etc
 		char *m_pstrFileExtension;
 		unsigned int m_uiWidth;				// not necessarily block aligned
 		unsigned int m_uiHeight;			// not necessarily block aligned
+        bool m_premultiplyAlpha;
 		ColorFloatRGBA *m_pafrgbaPixels;
 
 	};

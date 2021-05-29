@@ -81,8 +81,7 @@ public:
 			apstrCompareFilename[uiComparison] = nullptr;
 		}
 		fEffort = ETCCOMP_DEFAULT_EFFORT_LEVEL;
-		//Rec. 709 or BT.709...the default
-		e_ErrMetric = ErrorMetric::BT709;
+		e_ErrMetric = ErrorMetric::RGBX;
 		uiJobs = MIN_JOBS;
 
 		//these are ignored if they are < 0
@@ -92,6 +91,8 @@ public:
 		boolNormalizeXYZ = false;
 		mipmaps = 1;
 		mipFilterFlags = Etc::FILTER_WRAP_NONE;
+        
+        premultiplyAlpha = false;
 	}
 
 	bool ProcessCommandLineArguments(int a_iArgs, const char *a_apstrArgs[]);
@@ -116,6 +117,7 @@ public:
 	bool boolNormalizeXYZ;
 	int mipmaps;
 	unsigned int mipFilterFlags;
+    bool premultiplyAlpha;
 };
 
 #include "EtcFileHeader.h"
@@ -147,7 +149,7 @@ int main(int argc, const char * argv[])
 	{
 		printf("SourceImage: %s\n", commands.pstrSourceFilename);
 	}
-	SourceImage sourceimage(commands.pstrSourceFilename, commands.i_hPixel, commands.i_vPixel);
+	SourceImage sourceimage(commands.pstrSourceFilename, commands.i_hPixel, commands.i_vPixel, commands.premultiplyAlpha);
 	if (commands.boolNormalizeXYZ)
 	{
 		sourceimage.NormalizeXYZ();
@@ -592,6 +594,27 @@ bool Commands::ProcessCommandLineArguments(int a_iArgs, const char *a_apstrArgs[
 		{
 			return true;
 		}
+        else if (strcmp(a_apstrArgs[iArg], "-premultiplyAlpha") == 0)
+        {
+            ++iArg;
+            
+            if (iArg >= (a_iArgs))
+            {
+                printf("Error: missing error premultiplyAlpha value\n");
+                return true;
+            }
+            else
+            {
+                if (strcmp(a_apstrArgs[iArg], "on") == 0)
+                {
+                    premultiplyAlpha = true;
+                }
+                else if (strcmp(a_apstrArgs[iArg], "off") == 0)
+                {
+                    premultiplyAlpha = false;
+                }
+            }
+        }
 		else if (strcmp(a_apstrArgs[iArg], "-j") == 0 ||
 				 strcmp(a_apstrArgs[iArg], "-jobs") == 0)
 		{
@@ -744,6 +767,12 @@ bool Commands::ProcessCommandLineArguments(int a_iArgs, const char *a_apstrArgs[
         }
     }
 
+    if (premultiplyAlpha && e_ErrMetric != ErrorMetric::RGBX)
+    {
+        printf("Error: with premultiplyAlpha on, the value of errormetric must be 'rgbx'\n");
+        return true;
+    }
+    
 	if (pstrSourceFilename == nullptr)
 	{
 		printf("Error: missing source_image\n");
@@ -785,7 +814,7 @@ void Commands::FixSlashes(char *a_pstr)
 //
 void Commands::PrintUsageMessage(void)
 {
-	printf("Usage: etctool.exe source_image [options ...] -output <output_file>\n");
+	printf("Usage: etc2comp source_image [options ...] -output <output_file>\n");
 	printf("Options:\n");
 	printf("    -analyze <analysis_folder>\n");
 	printf("    -argfile <arg_file>           additional command line arguments\n");
@@ -804,6 +833,8 @@ void Commands::PrintUsageMessage(void)
 	printf("                                  process\n");
 	printf("    -mipmaps or -m <mip_count>    sets the maximum number of mipaps to generate (default=1)\n");
 	printf("    -mipwrap or -w <x|y|xy>       sets the mipmap filter wrap mode (default=clamp)\n");
+    printf("    -premultiplyAlpha <on|off>    run a preprocess over the image that scales RGB components \n");
+    printf("                                  in the image by the alpha value (default=off)\n");
 	printf("\n");
 
 	exit(1);
