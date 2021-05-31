@@ -858,7 +858,7 @@ void Commands::PrintUsageMessage(void)
 	printf("    -mipwrap or -w <x|y|xy>       sets the mipmap filter wrap mode (default=clamp)\n");
     printf("    -premultiplyAlpha <on|off>    run a preprocess over the image that scales RGB components \n");
     printf("                                  in the image by the alpha value (default=off)\n");
-    printf("    -fileFormat or -ff <ktx|pkm>  output in PKM or KTX format \n");
+    printf("    -fileFormat or -ff <ktx|pkm>  output in PKM or KTX format (default=pkm)\n");
 	printf("\n");
 
 	exit(1);
