@@ -30,20 +30,50 @@ namespace Etc
 		m_pfile = a_pfile;
 
 		static const char s_acMagicNumberData[4] = { 'P', 'K', 'M', ' ' };
-		static const char s_acVersionData[2] = { '1', '0' };
-
+		static const char s_acETC1VersionData[2] = { '1', '0' };
+        static const char s_acETC2VersionData[2] = { '2', '0' };
+        
 		for (unsigned int ui = 0; ui < sizeof(s_acMagicNumberData); ui++)
 		{
 			m_data.m_acMagicNumber[ui] = s_acMagicNumberData[ui];
 		}
 
-		for (unsigned int ui = 0; ui < sizeof(s_acVersionData); ui++)
-		{
-			m_data.m_acVersion[ui] = s_acVersionData[ui];
-		}
+        if (m_pfile->GetImageFormat() == Image::Format::ETC1)
+        {
+            for (unsigned int ui = 0; ui < sizeof(s_acETC1VersionData); ui++)
+            {
+                m_data.m_acVersion[ui] = s_acETC1VersionData[ui];
+            }
+        }
+        else
+        {
+            for (unsigned int ui = 0; ui < sizeof(s_acETC2VersionData); ui++)
+            {
+                m_data.m_acVersion[ui] = s_acETC2VersionData[ui];
+            }
+        }
 
-		m_data.m_ucDataType_msb = 0;        // ETC1_RGB_NO_MIPMAPS
-		m_data.m_ucDataType_lsb = 0;
+        // identifier                         value               codec
+        // --------------------------------------------------------------------
+        // ETC1_RGB_NO_MIPMAPS                  0                 GL_ETC1_RGB8_OES
+        // ETC2_RGB_NO_MIPMAPS                  1                 GL_COMPRESSED_RGB8_ETC2
+        // ETC2_RGBA_NO_MIPMAPS_OLD             2, not used       -
+        // ETC2_RGBA_NO_MIPMAPS                 3                 GL_COMPRESSED_RGBA8_ETC2_EAC
+        // ETC2_RGBA1_NO_MIPMAPS                4                 GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2
+        // ETC2_R_NO_MIPMAPS                    5                 GL_COMPRESSED_R11_EAC
+        // ETC2_RG_NO_MIPMAPS                   6                 GL_COMPRESSED_RG11_EAC
+        // ETC2_R_SIGNED_NO_MIPMAPS             7                 GL_COMPRESSED_SIGNED_R11_EAC
+        // ETC2_RG_SIGNED_NO_MIPMAPS            8                 GL_COMPRESSED_SIGNED_RG11_EAC
+        m_data.m_ucDataType_msb = 0;
+        m_data.m_ucDataType_lsb = ETC1_RGB_NO_MIPMAPS;
+        if (m_pfile->GetImageFormat() == Image::Format::RGB8)
+        {
+            m_data.m_ucDataType_lsb = ETC2_RGB_NO_MIPMAPS;
+        }
+        else if (m_pfile->GetImageFormat() == Image::Format::RGBA8)
+        {
+            m_data.m_ucDataType_lsb = ETC2_RGBA_NO_MIPMAPS;
+        }
 
 		m_data.m_ucOriginalWidth_msb = (unsigned char)(m_pfile->GetSourceWidth() >> 8);
 		m_data.m_ucOriginalWidth_lsb = m_pfile->GetSourceWidth() & 0xFF;

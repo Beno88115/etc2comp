@@ -47,7 +47,23 @@ namespace Etc
 
 		virtual void Write(FILE *a_pfile);
 		virtual ~FileHeader_Pkm(void) {}
+        
 	private:
+        enum
+        {
+            ETC1_RGB_NO_MIPMAPS = 0,
+            ETC2_RGB_NO_MIPMAPS,
+            ETC2_RGBA_NO_MIPMAPS_OLD,
+            ETC2_RGBA_NO_MIPMAPS,
+            ETC2_RGBA1_NO_MIPMAPS,
+            ETC2_R_NO_MIPMAPS,
+            ETC2_RG_NO_MIPMAPS,
+            ETC2_R_SIGNED_NO_MIPMAPS,
+            ETC2_RG_SIGNED_NO_MIPMAPS,
+            ETC2_sRGB_NO_MIPMAPS,
+            ETC2_sRGBA_NO_MIPMAPS,
+            ETC2_sRGBA1_NO_MIPMAPS
+        };
 
 		typedef struct
 		{

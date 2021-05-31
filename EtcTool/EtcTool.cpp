@@ -93,6 +93,7 @@ public:
 		mipFilterFlags = Etc::FILTER_WRAP_NONE;
         
         premultiplyAlpha = false;
+        fileFormat = File::Format::PKM;
 	}
 
 	bool ProcessCommandLineArguments(int a_iArgs, const char *a_apstrArgs[]);
@@ -118,6 +119,7 @@ public:
 	int mipmaps;
 	unsigned int mipFilterFlags;
     bool premultiplyAlpha;
+    File::Format fileFormat;
 };
 
 #include "EtcFileHeader.h"
@@ -126,7 +128,6 @@ public:
 //
 int main(int argc, const char * argv[])
 {
-
 	static const bool USE_C_INTERFACE = false;
 
 	// this code tests for memory leaks
@@ -241,7 +242,7 @@ int main(int argc, const char * argv[])
 			printf("    encode time = %dms\n", iEncodingTime_ms);
 			printf("EncodedImage: %s\n", commands.pstrOutputFilename);
 		}
-		Etc::File etcfile(commands.pstrOutputFilename, Etc::File::Format::INFER_FROM_FILE_EXTENSION,
+		Etc::File etcfile(commands.pstrOutputFilename, commands.fileFormat,
 							commands.format,
 							paucEncodingBits, uiEncodingBitsBytes,
 							uiSourceWidth, uiSourceHeight,
@@ -270,7 +271,7 @@ int main(int argc, const char * argv[])
 			printf("EncodedImage: %s\n", commands.pstrOutputFilename);
 			printf("status bitfield: %u\n", encStatus);
 		}
-		Etc::File etcfile(commands.pstrOutputFilename, Etc::File::Format::INFER_FROM_FILE_EXTENSION,
+		Etc::File etcfile(commands.pstrOutputFilename, commands.fileFormat,
 							commands.format,
 							image.GetEncodingBits(), image.GetEncodingBitsBytes(),
 							image.GetSourceWidth(), image.GetSourceHeight(),
@@ -615,6 +616,28 @@ bool Commands::ProcessCommandLineArguments(int a_iArgs, const char *a_apstrArgs[
                 }
             }
         }
+        else if (strcmp(a_apstrArgs[iArg], "-fileFormat") == 0 ||
+                 strcmp(a_apstrArgs[iArg], "-ff") == 0)
+        {
+            ++iArg;
+            
+            if (iArg >= (a_iArgs))
+            {
+                printf("Error: missing error fileFormat value\n");
+                return true;
+            }
+            else
+            {
+                if (strcmp(a_apstrArgs[iArg], "ktx") == 0)
+                {
+                    fileFormat = File::Format::KTX;
+                }
+                else if (strcmp(a_apstrArgs[iArg], "pkm") == 0)
+                {
+                    fileFormat = File::Format::PKM;
+                }
+            }
+        }
 		else if (strcmp(a_apstrArgs[iArg], "-j") == 0 ||
 				 strcmp(a_apstrArgs[iArg], "-jobs") == 0)
 		{
@@ -835,6 +858,7 @@ void Commands::PrintUsageMessage(void)
 	printf("    -mipwrap or -w <x|y|xy>       sets the mipmap filter wrap mode (default=clamp)\n");
     printf("    -premultiplyAlpha <on|off>    run a preprocess over the image that scales RGB components \n");
     printf("                                  in the image by the alpha value (default=off)\n");
+    printf("    -fileFormat or -ff <ktx|pkm>  output in PKM or KTX format \n");
 	printf("\n");
 
 	exit(1);

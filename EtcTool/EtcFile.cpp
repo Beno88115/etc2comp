@@ -55,8 +55,7 @@ File::File(const char *a_pstrFilename, Format a_fileformat, Image::Format a_imag
 	m_fileformat = a_fileformat;
 	if (m_fileformat == Format::INFER_FROM_FILE_EXTENSION)
 	{
-		// ***** TODO: add this later *****
-		m_fileformat = Format::KTX;
+		m_fileformat = Format::PKM;
 	}
 
 	m_imageformat = a_imageformat;
